@@ -1,12 +1,12 @@
 import { listAssessments } from "@/lib/edpire"
-import type { Assessment } from "@/lib/edpire"
+import type { AssessmentSummary } from "@/lib/edpire"
 import Link from "next/link"
 import { ArrowLeft, ArrowRight, Info } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
 export default async function PerQuestionIndexPage() {
-  let assessments: Assessment[] = []
+  let assessments: AssessmentSummary[] = []
   let error: string | null = null
 
   try {
@@ -58,7 +58,7 @@ export default async function PerQuestionIndexPage() {
             >
               <div>
                 <p className="font-medium text-slate-900">{a.title}</p>
-                <p className="text-sm text-slate-500 mt-0.5">{a.max_score} pts · {a.exercises.length} exercise{a.exercises.length !== 1 ? "s" : ""}</p>
+                <p className="text-sm text-slate-500 mt-0.5">{a.max_score} pts · {a.exercise_count} exercise{a.exercise_count !== 1 ? "s" : ""}</p>
               </div>
               <ArrowRight size={16} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
             </Link>

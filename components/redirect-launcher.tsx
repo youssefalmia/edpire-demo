@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import type { Assessment } from "@/lib/edpire"
+import type { AssessmentSummary } from "@/lib/edpire"
 import { ExternalLink, User } from "lucide-react"
 
 interface Props {
-  assessments: Assessment[]
+  assessments: AssessmentSummary[]
 }
 
 export function RedirectLauncher({ assessments }: Props) {

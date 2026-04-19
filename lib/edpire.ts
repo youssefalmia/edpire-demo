@@ -1,4 +1,4 @@
-const BASE_URL = "https://edpire.com"
+const BASE_URL = process.env.EDPIRE_API_BASE_URL ?? "https://edpire.com"
 const API_KEY = process.env.EDPIRE_API_KEY ?? ""
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -25,7 +25,8 @@ export interface Collection {
   item_count: number
 }
 
-export interface Assessment {
+// Returned by GET /api/v1/assessments (list) — no exercises array
+export interface AssessmentSummary {
   id: string
   title: string
   description: string | null
@@ -33,6 +34,11 @@ export interface Assessment {
   status: string
   share_code: string
   max_score: number
+  exercise_count: number
+}
+
+// Returned by GET /api/v1/assessments/:id (detail) — includes full exercises
+export interface Assessment extends AssessmentSummary {
   exercises: Exercise[]
 }
 
@@ -165,8 +171,8 @@ export async function getAssessment(id: string): Promise<Assessment> {
   return apiFetch<Assessment>(`/assessments/${id}`)
 }
 
-export async function listAssessments(): Promise<Assessment[]> {
-  return apiFetch<Assessment[]>("/assessments")
+export async function listAssessments(): Promise<AssessmentSummary[]> {
+  return apiFetch<AssessmentSummary[]>("/assessments")
 }
 
 export interface CheckResult {

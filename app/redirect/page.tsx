@@ -1,5 +1,5 @@
 import { listAssessments } from "@/lib/edpire"
-import type { Assessment } from "@/lib/edpire"
+import type { AssessmentSummary } from "@/lib/edpire"
 import { RedirectLauncher } from "@/components/redirect-launcher"
 import { ArrowLeft, Info } from "lucide-react"
 import Link from "next/link"
@@ -7,7 +7,7 @@ import Link from "next/link"
 export const dynamic = "force-dynamic"
 
 export default async function RedirectPage() {
-  let assessments: Assessment[] = []
+  let assessments: AssessmentSummary[] = []
   let error: string | null = null
 
   try {
