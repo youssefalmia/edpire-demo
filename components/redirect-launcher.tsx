@@ -13,11 +13,20 @@ export function RedirectLauncher({ assessments }: Props) {
 
   const takeBase = process.env.NEXT_PUBLIC_EDPIRE_TAKE_BASE_URL ?? ""
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
+  const orgSlug = process.env.NEXT_PUBLIC_EDPIRE_ORG_SLUG ?? ""
+
+  // On localhost, the subdomain-based routing doesn't work — use ?_subdomain= instead
+  const isLocalhost = takeBase.startsWith("http://localhost") || takeBase.startsWith("http://127.")
 
   function buildTakeUrl(shareCode: string): string {
     if (!takeBase) return "#"
     const returnUrl = `${appUrl}/redirect/callback`
-    return `${takeBase}/${shareCode}?learner_ref=${encodeURIComponent(learnerId)}&return_url=${encodeURIComponent(returnUrl)}`
+    const params = new URLSearchParams({
+      learner_ref: learnerId,
+      return_url: returnUrl,
+    })
+    if (isLocalhost && orgSlug) params.set("_subdomain", orgSlug)
+    return `${takeBase}/${shareCode}?${params.toString()}`
   }
 
   return (
@@ -71,11 +80,17 @@ export function RedirectLauncher({ assessments }: Props) {
         </p>
       )}
 
+      {isLocalhost && !orgSlug && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          Set <code className="font-mono">NEXT_PUBLIC_EDPIRE_ORG_SLUG</code> to your org slug so the local Edpire
+          server knows which org to use (appended as <code className="font-mono">?_subdomain=</code>).
+        </p>
+      )}
+
       <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
-        <p className="text-xs font-medium text-slate-500 mb-2">Example take URL</p>
+        <p className="text-xs font-medium text-slate-500 mb-2">Generated take URL</p>
         <code className="text-xs text-slate-600 break-all">
-          {takeBase || "https://your-org.edpire.com/take"}/{assessments[0]?.share_code ?? "SHARE_CODE"}
-          ?learner_ref={learnerId}&amp;return_url={appUrl || "https://your-app.com"}/redirect/callback
+          {assessments[0] ? buildTakeUrl(assessments[0].share_code) : `${takeBase || "https://your-org.edpire.com/take"}/SHARE_CODE?learner_ref=${learnerId}&return_url=${appUrl}/redirect/callback`}
         </code>
       </div>
     </div>

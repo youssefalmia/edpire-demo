@@ -1,4 +1,4 @@
-const BASE_URL = process.env.EDPIRE_API_BASE_URL ?? "https://app.edpire.com"
+const BASE_URL = process.env.EDPIRE_API_BASE_URL ?? "https://edpire.com"
 const API_KEY = process.env.EDPIRE_API_KEY ?? ""
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
