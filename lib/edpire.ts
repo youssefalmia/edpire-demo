@@ -11,7 +11,10 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     },
   })
   const json = await res.json()
-  if (!res.ok) throw new Error(json?.error ?? `API error ${res.status}`)
+  if (!res.ok) {
+    const msg = json?.error?.message ?? json?.error ?? `API error ${res.status}`
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg))
+  }
   return json.data as T
 }
 
