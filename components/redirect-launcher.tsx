@@ -13,6 +13,7 @@ export function RedirectLauncher({ assessments }: Props) {
 
   const takeBase = process.env.NEXT_PUBLIC_EDPIRE_TAKE_BASE_URL ?? ""
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
+  const orgSlug = process.env.NEXT_PUBLIC_EDPIRE_ORG_SLUG ?? ""
 
   function buildTakeUrl(shareCode: string): string {
     if (!takeBase) return "#"
@@ -20,8 +21,12 @@ export function RedirectLauncher({ assessments }: Props) {
       learner_ref: learnerId,
       return_url: `${appUrl}/redirect/callback`,
     })
+    // If no branded subdomain is provisioned yet, route via main domain using ?_subdomain=
+    if (orgSlug) params.set("_subdomain", orgSlug)
     return `${takeBase}/${shareCode}?${params.toString()}`
   }
+
+  const ready = !!takeBase && !!orgSlug
 
   return (
     <div className="space-y-6">
@@ -55,7 +60,7 @@ export function RedirectLauncher({ assessments }: Props) {
                 rel="noopener noreferrer"
                 className={[
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                  takeBase
+                  ready
                     ? "bg-indigo-600 text-white hover:bg-indigo-700"
                     : "bg-slate-100 text-slate-400 cursor-not-allowed pointer-events-none",
                 ].join(" ")}
@@ -69,16 +74,21 @@ export function RedirectLauncher({ assessments }: Props) {
 
       {!takeBase && (
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          Set <code className="font-mono">NEXT_PUBLIC_EDPIRE_TAKE_BASE_URL</code> in your{" "}
-          <code className="font-mono">.env.local</code> to enable redirect links.
+          Set <code className="font-mono">NEXT_PUBLIC_EDPIRE_TAKE_BASE_URL</code> in your <code className="font-mono">.env.local</code>.
+        </p>
+      )}
+      {takeBase && !orgSlug && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          Set <code className="font-mono">NEXT_PUBLIC_EDPIRE_ORG_SLUG</code> to your org slug — used to route the assessment player correctly.
         </p>
       )}
 
-
-<div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
+      <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
         <p className="text-xs font-medium text-slate-500 mb-2">Generated take URL</p>
         <code className="text-xs text-slate-600 break-all">
-          {assessments[0] ? buildTakeUrl(assessments[0].share_code) : `${takeBase || "https://your-org.edpire.com/take"}/SHARE_CODE?learner_ref=${learnerId}&return_url=${appUrl}/redirect/callback`}
+          {assessments[0]
+            ? buildTakeUrl(assessments[0].share_code)
+            : `https://edpire.com/take/SHARE_CODE?_subdomain=${orgSlug || "your-org-slug"}&learner_ref=${learnerId}&return_url=${appUrl}/redirect/callback`}
         </code>
       </div>
     </div>
