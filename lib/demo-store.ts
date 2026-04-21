@@ -69,25 +69,25 @@ function createInitialState(): DemoState {
     chapters: [
       {
         id: "chapter-1",
-        title: "Chapter 1",
-        description: "Foundational work. Reorder evaluations here to mirror your own curriculum structure.",
+        title: "Chapitre 1 : Capitales d’Europe",
+        description: "Découvrez les capitales des pays européens et apprenez à les situer sur la carte.",
       },
       {
         id: "chapter-2",
-        title: "Chapter 2",
-        description: "A second local grouping layer owned by your product, not by Edpire.",
+        title: "Chapitre 2 : Capitales d’Afrique",
+        description: "Explorez les capitales africaines et familiarisez-vous avec leur diversité culturelle.",
       },
       {
         id: "chapter-3",
-        title: "Chapter 3",
-        description: "Useful when your team wants product-specific sequencing on top of assessments.",
+        title: "Chapitre 3 : Capitales d’Asie et du monde",
+        description: "Approfondissez vos connaissances des capitales asiatiques et d’autres régions du monde.",
       },
     ],
     evaluations: [
       {
         id: "evaluation-1",
-        title: "Reading Warm-up",
-        description: "A lightweight evaluation card with business-facing copy and local placement rules.",
+        title: "Introduction aux capitales européennes",
+        description: "Une première évaluation pour reconnaître et mémoriser les capitales d’Europe.",
         status: "published",
         isFree: true,
         chapterId: "chapter-1",
@@ -98,8 +98,8 @@ function createInitialState(): DemoState {
       },
       {
         id: "evaluation-2",
-        title: "Comprehension Checkpoint",
-        description: "The same Edpire assessment could still be reused in another evaluation wrapper if your product needs it.",
+        title: "Quiz : capitales d’Europe",
+        description: "Testez vos connaissances sur les capitales européennes avec un quiz interactif.",
         status: "published",
         isFree: false,
         chapterId: "chapter-1",
@@ -110,8 +110,8 @@ function createInitialState(): DemoState {
       },
       {
         id: "evaluation-3",
-        title: "Chapter 2 Practice",
-        description: "A published evaluation in a different chapter to demonstrate ordering and grouping.",
+        title: "Exercice : capitales africaines",
+        description: "Entraînez-vous à identifier les capitales des pays africains.",
         status: "published",
         isFree: false,
         chapterId: "chapter-2",
@@ -122,8 +122,8 @@ function createInitialState(): DemoState {
       },
       {
         id: "evaluation-4",
-        title: "Archived Drill",
-        description: "Archived entities remain part of your app model even though learners do not see them.",
+        title: "Défi avancé : capitales du monde",
+        description: "Un exercice avancé couvrant les capitales de plusieurs continents.",
         status: "archived",
         isFree: false,
         chapterId: "chapter-3",
