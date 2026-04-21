@@ -7,7 +7,7 @@ const demos = [
     label: "Primary showcase",
     title: "Learner-facing product demo",
     description:
-      "See how your platform can present its own evaluation cards, chapter structure, exam objects, and branded result pages on top of Edpire assessments.",
+      "See how your platform can present its own evaluation cards, chapter structure, and branded result pages on top of Edpire assessments.",
     points: [
       "Local entities wrap Edpire assessments",
       "Result state flows back into your own UI",
@@ -21,7 +21,7 @@ const demos = [
     label: "Admin-style example",
     title: "Builder with Edpire side panel",
     description:
-      "Create your own evaluations and exams, edit local metadata on the left, and assign Edpire assessments from the right-side catalog panel.",
+      "Create your own evaluations, edit local metadata on the left, and assign Edpire assessments from the right-side catalog panel.",
     points: [
       "Right-side Edpire catalog panel",
       "Create, delete, reorder, filter",

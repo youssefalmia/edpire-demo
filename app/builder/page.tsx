@@ -34,7 +34,6 @@ export default async function BuilderPage() {
       <DemoBuilder
         chapters={snapshot.chapters}
         evaluations={snapshot.evaluations}
-        exams={snapshot.exams}
         assessments={assessments}
         usageByAssessmentId={usageByAssessmentId}
         assessmentError={assessmentError}

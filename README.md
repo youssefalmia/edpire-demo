@@ -2,7 +2,7 @@
 
 This repo now demonstrates three complementary integration patterns:
 
-- `Library`: a learner-facing product demo where your platform owns cards, chapters, exams, copy, and result pages while Edpire runs the assessment.
+- `Library`: a learner-facing product demo where your platform owns evaluation cards, chapters, copy, and result pages while Edpire runs the assessment.
 - `Builder`: an admin-style page with a right-side Edpire catalog panel and local wrapper entities on the left.
 - `Simple Redirect`: the minimal possible redirect integration kept alongside the richer demo for comparison.
 
@@ -17,7 +17,7 @@ Edpire should usually own:
 
 Your platform should usually own:
 
-- learner-facing entities like evaluations or exams
+- learner-facing entities like evaluations
 - local metadata and access rules
 - grouping and sequencing such as chapters
 - result presentation and navigation
@@ -30,7 +30,6 @@ This demo intentionally uses **temporary in-memory server state** for wrappers, 
 - `/` landing page for the three demos
 - `/library` learner-facing product demo
 - `/library/evaluations` chapter-based local wrappers
-- `/library/exams` alternate wrapper type with different metadata
 - `/builder` admin-style wrapper builder with Edpire side panel
 - `/simple-redirect` smallest viable redirect integration
 - `/result/[attemptId]` standalone result page

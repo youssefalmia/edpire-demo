@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, BookOpenText, Layers3, ShieldCheck, Trophy } from "lucide-react"
+import { ArrowRight, BookOpenText, Layers3, ShieldCheck } from "lucide-react"
 import { bootstrapDemoAssignments, getDemoSnapshot, getLatestAttemptsMap } from "@/lib/demo-store"
 import { listAssessments } from "@/lib/edpire"
 
@@ -15,7 +15,6 @@ export default async function LibraryHomePage() {
   const latestAttempts = getLatestAttemptsMap()
 
   const publishedEvaluations = snapshot.evaluations.filter((item) => item.status === "published")
-  const publishedExams = snapshot.exams.filter((item) => item.status === "published")
   const completedCount = Array.from(latestAttempts.values()).filter(
     (attempt) => attempt.status === "completed"
   ).length
@@ -28,7 +27,7 @@ export default async function LibraryHomePage() {
             Learner-facing product demo
           </p>
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950">
-            Your own cards, chapters, exams, and learner journey. Edpire runs the assessment.
+            Your own evaluation cards, chapter flow, and learner journey. Edpire runs the assessment.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
             This is the main showcase. It demonstrates how a platform can present friendly product-owned
@@ -43,8 +42,8 @@ export default async function LibraryHomePage() {
             <p className="mt-3 text-3xl font-bold text-slate-950">{publishedEvaluations.length}</p>
           </div>
           <div className="rounded-3xl bg-white/80 p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Published exams</p>
-            <p className="mt-3 text-3xl font-bold text-slate-950">{publishedExams.length}</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Chapters</p>
+            <p className="mt-3 text-3xl font-bold text-slate-950">{snapshot.chapters.length}</p>
           </div>
           <div className="rounded-3xl bg-white/80 p-5">
             <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Completed wrappers</p>
@@ -53,7 +52,7 @@ export default async function LibraryHomePage() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div>
         <Link
           href="/library/evaluations"
           className="group rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
@@ -75,28 +74,6 @@ export default async function LibraryHomePage() {
             Explore evaluations <ArrowRight size={15} />
           </div>
         </Link>
-
-        <Link
-          href="/library/exams"
-          className="group rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="rounded-2xl bg-violet-100 p-3 text-violet-700">
-              <Trophy size={20} />
-            </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-              Different wrapper model
-            </span>
-          </div>
-          <h2 className="mt-6 text-2xl font-bold tracking-tight text-slate-950">Exams</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            Exams intentionally use a different metadata shape. It helps teams see that their platform can
-            model multiple learner-facing objects around the same Edpire catalog.
-          </p>
-          <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-violet-700 transition group-hover:gap-3">
-            Explore exams <ArrowRight size={15} />
-          </div>
-        </Link>
       </div>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -108,7 +85,7 @@ export default async function LibraryHomePage() {
           <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
             <li>You control the naming, grouping, gating, and learner-facing presentation.</li>
             <li>Each wrapper can point to one Edpire assessment while still carrying local metadata.</li>
-            <li>Result state can be reflected back into your own cards after callback and webhook updates.</li>
+            <li>Result state flows back into your own cards after callback and webhook updates.</li>
           </ul>
         </div>
 

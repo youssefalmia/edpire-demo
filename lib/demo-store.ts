@@ -6,8 +6,7 @@ import type { AssessmentSummary, SubmissionResult } from "@/lib/edpire"
 export const DEMO_LEARNER_ID = "learner-demo-01"
 
 export type EntityStatus = "draft" | "published" | "archived"
-export type Difficulty = "easy" | "medium" | "hard"
-export type EntityType = "evaluation" | "exam"
+export type EntityType = "evaluation"
 
 export interface Chapter {
   id: string
@@ -23,18 +22,6 @@ export interface EvaluationEntity {
   isFree: boolean
   chapterId: string
   sortOrder: number
-  assessmentId: string | null
-  assessmentTitle: string | null
-  shareCode: string | null
-}
-
-export interface ExamEntity {
-  id: string
-  title: string
-  description: string
-  status: EntityStatus
-  isFree: boolean
-  difficulty: Difficulty
   assessmentId: string | null
   assessmentTitle: string | null
   shareCode: string | null
@@ -61,7 +48,6 @@ export interface AttemptRecord {
 interface DemoState {
   chapters: Chapter[]
   evaluations: EvaluationEntity[]
-  exams: ExamEntity[]
   attempts: AttemptRecord[]
   autoSeededFromCatalog: boolean
 }
@@ -106,7 +92,7 @@ function createInitialState(): DemoState {
       {
         id: "evaluation-2",
         title: "Comprehension Checkpoint",
-        description: "Same Edpire assessment could be reused in another wrapper if your product needs it.",
+        description: "The same Edpire assessment could still be reused in another evaluation wrapper if your product needs it.",
         status: "published",
         isFree: false,
         chapterId: "chapter-1",
@@ -140,41 +126,6 @@ function createInitialState(): DemoState {
         shareCode: null,
       },
     ],
-    exams: [
-      {
-        id: "exam-1",
-        title: "Midterm Exam",
-        description: "Exams intentionally have a different shape to show that your wrappers can vary by use case.",
-        status: "published",
-        isFree: false,
-        difficulty: "medium",
-        assessmentId: null,
-        assessmentTitle: null,
-        shareCode: null,
-      },
-      {
-        id: "exam-2",
-        title: "Final Exam",
-        description: "High-stakes wrapper with its own UI language and metadata rules.",
-        status: "draft",
-        isFree: false,
-        difficulty: "hard",
-        assessmentId: null,
-        assessmentTitle: null,
-        shareCode: null,
-      },
-      {
-        id: "exam-3",
-        title: "Open Practice Exam",
-        description: "Free exam wrapper showing that local access logic can differ from the underlying assessment.",
-        status: "published",
-        isFree: true,
-        difficulty: "easy",
-        assessmentId: null,
-        assessmentTitle: null,
-        shareCode: null,
-      },
-    ],
     attempts: [],
     autoSeededFromCatalog: false,
   }
@@ -197,28 +148,16 @@ export function getDemoSnapshot() {
   return clone({
     chapters: state.chapters,
     evaluations: state.evaluations,
-    exams: state.exams,
     attempts: state.attempts,
   })
 }
 
-function assignAssessmentToEvaluation(
-  evaluation: EvaluationEntity,
-  assessment: AssessmentSummary | null
-) {
+function assignAssessmentToEvaluation(evaluation: EvaluationEntity, assessment: AssessmentSummary | null) {
   evaluation.assessmentId = assessment?.id ?? null
   evaluation.assessmentTitle = assessment?.title ?? null
   evaluation.shareCode = assessment?.share_code ?? null
 }
 
-function assignAssessmentToExam(exam: ExamEntity, assessment: AssessmentSummary | null) {
-  exam.assessmentId = assessment?.id ?? null
-  exam.assessmentTitle = assessment?.title ?? null
-  exam.shareCode = assessment?.share_code ?? null
-}
-
-// Seed a few wrappers from the live Edpire catalog so the learner-facing demo
-// works immediately once an API key is configured.
 export function bootstrapDemoAssignments(assessments: AssessmentSummary[]) {
   const state = getState()
   if (state.autoSeededFromCatalog || assessments.length === 0) return
@@ -232,23 +171,13 @@ export function bootstrapDemoAssignments(assessments: AssessmentSummary[]) {
     })
   }
 
-  if (!state.exams.some((item) => item.assessmentId)) {
-    state.exams
-      .filter((exam) => exam.status === "published")
-      .slice(0, 2)
-      .forEach((exam, index) => {
-        assignAssessmentToExam(exam, published[index + 1] ?? published[index] ?? null)
-      })
-  }
-
   state.autoSeededFromCatalog = true
 }
 
 export function createEvaluation() {
   const state = getState()
   const chapterId = state.chapters[0]?.id ?? "chapter-1"
-  const nextOrder =
-    state.evaluations.filter((item) => item.chapterId === chapterId).length
+  const nextOrder = state.evaluations.filter((item) => item.chapterId === chapterId).length
 
   state.evaluations.unshift({
     id: randomUUID(),
@@ -264,41 +193,14 @@ export function createEvaluation() {
   })
 }
 
-export function createExam() {
+export function createEntityFromAssessment(assessment: AssessmentSummary) {
+  createEvaluation()
   const state = getState()
-  state.exams.unshift({
-    id: randomUUID(),
-    title: "New Exam",
-    description: "A separate wrapper type with its own metadata shape and visual treatment.",
-    status: "draft",
-    isFree: false,
-    difficulty: "medium",
-    assessmentId: null,
-    assessmentTitle: null,
-    shareCode: null,
-  })
-}
-
-export function createEntityFromAssessment(entityType: EntityType, assessment: AssessmentSummary) {
-  if (entityType === "evaluation") {
-    createEvaluation()
-    const state = getState()
-    const latest = state.evaluations[0]
-    latest.title = assessment.title
-    latest.description = "Created directly from the Edpire catalog in the builder panel."
-    assignAssessmentToEvaluation(latest, assessment)
-    latest.status = "published"
-    return
-  }
-
-  createExam()
-  const state = getState()
-  const latest = state.exams[0]
+  const latest = state.evaluations[0]
   latest.title = assessment.title
   latest.description = "Created directly from the Edpire catalog in the builder panel."
-  latest.difficulty = "medium"
-  assignAssessmentToExam(latest, assessment)
   latest.status = "published"
+  assignAssessmentToEvaluation(latest, assessment)
 }
 
 export function saveEvaluation(input: {
@@ -321,51 +223,21 @@ export function saveEvaluation(input: {
   current.chapterId = input.chapterId
 
   if (previousChapterId !== input.chapterId) {
-    const nextOrder =
-      state.evaluations.filter(
-        (item) => item.chapterId === input.chapterId && item.id !== current.id
-      ).length
+    const nextOrder = state.evaluations.filter(
+      (item) => item.chapterId === input.chapterId && item.id !== current.id
+    ).length
     current.sortOrder = nextOrder
     normalizeChapterOrder(previousChapterId)
     normalizeChapterOrder(input.chapterId)
   }
 }
 
-export function saveExam(input: {
-  id: string
-  title: string
-  description: string
-  status: EntityStatus
-  isFree: boolean
-  difficulty: Difficulty
-}) {
+export function deleteEntity(id: string) {
   const state = getState()
-  const current = state.exams.find((item) => item.id === input.id)
-  if (!current) return
-
-  current.title = input.title
-  current.description = input.description
-  current.status = input.status
-  current.isFree = input.isFree
-  current.difficulty = input.difficulty
-}
-
-export function deleteEntity(entityType: EntityType, id: string) {
-  const state = getState()
-  if (entityType === "evaluation") {
-    const evaluation = state.evaluations.find((item) => item.id === id)
-    state.evaluations = state.evaluations.filter((item) => item.id !== id)
-    state.attempts = state.attempts.filter(
-      (attempt) => !(attempt.entityType === "evaluation" && attempt.entityId === id)
-    )
-    if (evaluation) normalizeChapterOrder(evaluation.chapterId)
-    return
-  }
-
-  state.exams = state.exams.filter((item) => item.id !== id)
-  state.attempts = state.attempts.filter(
-    (attempt) => !(attempt.entityType === "exam" && attempt.entityId === id)
-  )
+  const evaluation = state.evaluations.find((item) => item.id === id)
+  state.evaluations = state.evaluations.filter((item) => item.id !== id)
+  state.attempts = state.attempts.filter((attempt) => attempt.entityId !== id)
+  if (evaluation) normalizeChapterOrder(evaluation.chapterId)
 }
 
 function normalizeChapterOrder(chapterId: string) {
@@ -400,35 +272,16 @@ export function moveEvaluation(id: string, direction: "up" | "down") {
   normalizeChapterOrder(current.chapterId)
 }
 
-export function assignAssessment(input: {
-  entityType: EntityType
-  entityId: string
-  assessment: AssessmentSummary
-}) {
+export function assignAssessment(input: { entityId: string; assessment: AssessmentSummary }) {
   const state = getState()
-
-  if (input.entityType === "evaluation") {
-    const evaluation = state.evaluations.find((item) => item.id === input.entityId)
-    if (!evaluation) return
-    assignAssessmentToEvaluation(evaluation, input.assessment)
-    return
-  }
-
-  const exam = state.exams.find((item) => item.id === input.entityId)
-  if (!exam) return
-  assignAssessmentToExam(exam, input.assessment)
+  const evaluation = state.evaluations.find((item) => item.id === input.entityId)
+  if (!evaluation) return
+  assignAssessmentToEvaluation(evaluation, input.assessment)
 }
 
-export function createAttempt(input: {
-  entityType: EntityType
-  entityId: string
-  learnerRef: string
-}) {
+export function createAttempt(input: { entityId: string; learnerRef: string }) {
   const state = getState()
-  const entity =
-    input.entityType === "evaluation"
-      ? state.evaluations.find((item) => item.id === input.entityId)
-      : state.exams.find((item) => item.id === input.entityId)
+  const entity = state.evaluations.find((item) => item.id === input.entityId)
 
   if (!entity || !entity.assessmentId || !entity.shareCode || !entity.assessmentTitle) {
     return null
@@ -436,7 +289,7 @@ export function createAttempt(input: {
 
   const attempt: AttemptRecord = {
     id: randomUUID(),
-    entityType: input.entityType,
+    entityType: "evaluation",
     entityId: input.entityId,
     learnerRef: input.learnerRef,
     assessmentId: entity.assessmentId,
@@ -504,14 +357,6 @@ export function updateLatestPendingAttemptFromWebhook(result: SubmissionResult) 
   })
 }
 
-export function getLatestAttemptForEntity(entityType: EntityType, entityId: string) {
-  const state = getState()
-  const attempt = state.attempts.find(
-    (item) => item.entityType === entityType && item.entityId === entityId
-  )
-  return attempt ? clone(attempt) : null
-}
-
 export function getLatestAttemptsMap() {
   const state = getState()
   const latestAttempts = new Map<string, AttemptRecord>()
@@ -528,10 +373,7 @@ export function getLatestAttemptsMap() {
 
 export function getAssessmentUsageMap() {
   const state = getState()
-  const usage = new Map<
-    string,
-    { label: string; entityType: EntityType; entityId: string }[]
-  >()
+  const usage = new Map<string, { label: string; entityType: EntityType; entityId: string }[]>()
 
   state.evaluations.forEach((evaluation) => {
     if (!evaluation.assessmentId) return
@@ -542,17 +384,6 @@ export function getAssessmentUsageMap() {
       entityId: evaluation.id,
     })
     usage.set(evaluation.assessmentId, current)
-  })
-
-  state.exams.forEach((exam) => {
-    if (!exam.assessmentId) return
-    const current = usage.get(exam.assessmentId) ?? []
-    current.push({
-      label: exam.title,
-      entityType: "exam",
-      entityId: exam.id,
-    })
-    usage.set(exam.assessmentId, current)
   })
 
   return usage

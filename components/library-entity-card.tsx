@@ -1,10 +1,9 @@
 import Link from "next/link"
-import { Clock3, Lock, Play, ShieldCheck, Sparkles, Trophy } from "lucide-react"
-import type { AttemptRecord, EntityType } from "@/lib/demo-store"
+import { Clock3, Lock, Play, ShieldCheck, Sparkles } from "lucide-react"
+import type { AttemptRecord } from "@/lib/demo-store"
 import { startEntityAttemptAction } from "@/lib/demo-actions"
 
 interface Props {
-  entityType: EntityType
   entityId: string
   title: string
   description: string
@@ -12,11 +11,9 @@ interface Props {
   assessmentAssigned: boolean
   assessmentTitle: string | null
   latestAttempt: AttemptRecord | null
-  difficulty?: string
 }
 
 export function LibraryEntityCard({
-  entityType,
   entityId,
   title,
   description,
@@ -24,7 +21,6 @@ export function LibraryEntityCard({
   assessmentAssigned,
   assessmentTitle,
   latestAttempt,
-  difficulty,
 }: Props) {
   const action = startEntityAttemptAction
   const completed = latestAttempt?.status === "completed"
@@ -33,19 +29,13 @@ export function LibraryEntityCard({
     <article className="flex h-full flex-col rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
-            {entityType === "evaluation" ? "Evaluation" : "Exam"}
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Evaluation</p>
           <h3 className="mt-3 text-xl font-bold tracking-tight text-slate-950">{title}</h3>
           <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
         </div>
 
         <div className="rounded-2xl bg-slate-50 p-3">
-          {entityType === "evaluation" ? (
-            <Sparkles className="text-sky-500" size={18} />
-          ) : (
-            <Trophy className="text-violet-500" size={18} />
-          )}
+          <Sparkles className="text-sky-500" size={18} />
         </div>
       </div>
 
@@ -57,11 +47,6 @@ export function LibraryEntityCard({
         >
           {isFree ? "Free access" : "Premium gate"}
         </span>
-        {difficulty ? (
-          <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
-            {difficulty}
-          </span>
-        ) : null}
         {assessmentAssigned ? (
           <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
             Edpire linked
@@ -135,7 +120,7 @@ export function LibraryEntityCard({
       </div>
 
       <form action={action} className="mt-6">
-        <input type="hidden" name="entityType" value={entityType} />
+        <input type="hidden" name="entityType" value="evaluation" />
         <input type="hidden" name="entityId" value={entityId} />
         <button
           type="submit"

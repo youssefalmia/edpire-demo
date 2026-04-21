@@ -14,7 +14,6 @@ function refreshDemoPaths() {
   revalidatePath("/builder")
   revalidatePath("/library")
   revalidatePath("/library/evaluations")
-  revalidatePath("/library/exams")
 }
 
 export async function resolveAttemptResult(attemptId: string, submissionId: string) {

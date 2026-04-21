@@ -10,8 +10,8 @@ interface Props {
 
 export const dynamic = "force-dynamic"
 
-function getBackLink(entityType: "evaluation" | "exam") {
-  return entityType === "evaluation" ? "/library/evaluations" : "/library/exams"
+function getBackLink() {
+  return "/library/evaluations"
 }
 
 export default async function ResultPage({ params, searchParams }: Props) {
@@ -40,7 +40,7 @@ export default async function ResultPage({ params, searchParams }: Props) {
     )
   }
 
-  const backHref = getBackLink(attempt.entityType)
+  const backHref = getBackLink()
   const percentage = attempt.percentage
   const passed = attempt.passed
 
@@ -51,7 +51,7 @@ export default async function ResultPage({ params, searchParams }: Props) {
           href={backHref}
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-700"
         >
-          <ArrowLeft size={14} /> Back to {attempt.entityType === "evaluation" ? "evaluations" : "exams"}
+          <ArrowLeft size={14} /> Back to evaluations
         </Link>
         <Link
           href="/builder"

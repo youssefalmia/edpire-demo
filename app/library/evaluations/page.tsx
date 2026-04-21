@@ -110,7 +110,6 @@ export default async function EvaluationsPage({
                 {items.map((item) => (
                   <LibraryEntityCard
                     key={item.id}
-                    entityType="evaluation"
                     entityId={item.id}
                     title={item.title}
                     description={item.description}
