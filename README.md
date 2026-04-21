@@ -1,65 +1,74 @@
-# Edpire Integration Examples
+# Edpire Integration Demo
 
-Live working examples of Edpire integration patterns. The redirect flow is available now, and the SDK flow is reserved for a future update.
+This repo now demonstrates three complementary integration patterns:
 
-**[Live demo ->](https://your-demo.vercel.app)**
+- `Library`: a learner-facing product demo where your platform owns cards, chapters, exams, copy, and result pages while Edpire runs the assessment.
+- `Builder`: an admin-style page with a right-side Edpire catalog panel and local wrapper entities on the left.
+- `Simple Redirect`: the minimal possible redirect integration kept alongside the richer demo for comparison.
 
----
+## What this repo is teaching
 
-## Patterns
+Edpire should usually own:
 
-### Pattern A - Redirect *(recommended starting point)*
+- assessment delivery
+- grading
+- share-code launches
+- submission identifiers
 
-Send learners to the Edpire-hosted player. Your app constructs a URL, the learner completes the assessment, and Edpire redirects back with the score.
+Your platform should usually own:
 
-**When to use:** You want to embed assessments in under a day, or you want Edpire's full UI (timer, hints, rich media).
+- learner-facing entities like evaluations or exams
+- local metadata and access rules
+- grouping and sequencing such as chapters
+- result presentation and navigation
+- persistence in your own database
 
-```text
-YOUR APP  ->  redirect to https://{org}.edpire.com/take/{shareCode}?learner_ref=...&return_url=...
-                       learner completes assessment
-YOUR APP  <-  https://your-app.com/callback?submission_id=...&score=...&max_score=...
-```
+This demo intentionally uses **temporary in-memory server state** for wrappers, assignments, and attempts so the architecture is easy to understand. In production, those records belong in your app database.
 
-### Pattern B - SDK integration *(coming soon)*
+## Routes
 
-An embedded SDK-based flow will be added back in a future update. The current demo intentionally does not ship that implementation.
-
----
+- `/` landing page for the three demos
+- `/library` learner-facing product demo
+- `/library/evaluations` chapter-based local wrappers
+- `/library/exams` alternate wrapper type with different metadata
+- `/builder` admin-style wrapper builder with Edpire side panel
+- `/simple-redirect` smallest viable redirect integration
+- `/result/[attemptId]` standalone result page
+- `/api/webhooks/edpire` minimal `submission.graded` webhook receiver
 
 ## Setup
 
 ```bash
-git clone https://github.com/your-org/edpire-integration-demo
-cd edpire-integration-demo
 npm install
-
 cp .env.example .env.local
-# Fill in your API key and org details in .env.local
-
 npm run dev
-# Open http://localhost:3000
 ```
 
-### Environment variables
+Then open `http://localhost:3000`.
+
+## Environment variables
 
 | Variable | Required | Description |
 |---|---|---|
-| `EDPIRE_API_KEY` | Yes | API key from Settings -> Integrations -> API Keys |
-| `EDPIRE_API_BASE_URL` | No | Default: `https://app.edpire.com` |
-| `NEXT_PUBLIC_EDPIRE_TAKE_BASE_URL` | Pattern A | e.g. `https://your-org.edpire.com/take` |
-| `NEXT_PUBLIC_APP_URL` | Pattern A | This app's public URL (for `return_url`) |
+| `EDPIRE_API_KEY` | Yes | API key used to read assessments and verify submissions |
+| `EDPIRE_API_BASE_URL` | No | Defaults to `https://edpire.com` |
+| `NEXT_PUBLIC_EDPIRE_TAKE_BASE_URL` | Optional | Direct take base if you already know your exact take entrypoint |
+| `NEXT_PUBLIC_EDPIRE_ORG_SLUG` | Redirect flows | Assigned org slug used for `https://{slug}.edpire.com` |
+| `NEXT_PUBLIC_EDPIRE_TENANT_ORIGIN` | Optional | Explicit branded tenant origin, example: `https://your-org-slug.edpire.com` |
+| `NEXT_PUBLIC_APP_URL` | Redirect flows | Public app URL used for `return_url` |
+| `EDPIRE_WEBHOOK_SECRET` | Webhook demo | Used to verify `X-Edpire-Signature` |
 
----
+## Notes
 
-## Deploy to Vercel
+- The learner-facing and builder demos auto-seed a few local wrappers from the live assessment catalog once your API key is configured.
+- The result flow verifies `submission_id` server-side with `GET /api/v1/submissions/:id`.
+- The webhook endpoint is intentionally narrow: it only demonstrates `submission.graded`.
+- Live webhook delivery during local development still requires a public URL or tunnel.
+- The redirect examples now prefer a branded tenant URL like `https://{slug}.edpire.com/take/{shareCode}`.
+- Teams should contact Edpire admin/support to get their slug assigned and tenant provisioned.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-org/edpire-integration-demo)
+## Validation
 
-Set the environment variables in the Vercel dashboard after deploying.
-
----
-
-## Security
-
-- Your `EDPIRE_API_KEY` is never sent to the browser; all API calls are proxied through Next.js server routes.
-- The `learner_ref` field is your internal user ID; use your authenticated user's ID in production.
+```bash
+npm run build
+```
