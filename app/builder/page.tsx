@@ -1,14 +1,20 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { DemoBuilder } from "@/components/demo-builder"
-import { bootstrapDemoAssignments, getAssessmentUsageMap, getDemoSnapshot } from "@/lib/demo-store"
-import { listAssessments, type AssessmentSummary } from "@/lib/edpire"
+import {
+  bootstrapDemoAssignments,
+  getAssessmentUsageMap,
+  getDemoSnapshot,
+  replaceAssessmentResults,
+} from "@/lib/demo-store"
+import { getAssessmentResults, listAssessments, type AssessmentSummary } from "@/lib/edpire"
 
 export const dynamic = "force-dynamic"
 
 export default async function BuilderPage() {
   let assessments: AssessmentSummary[] = []
   let assessmentError: string | null = null
+  const resultsErrors: Record<string, string> = {}
 
   try {
     assessments = await listAssessments()
@@ -17,7 +23,22 @@ export default async function BuilderPage() {
     assessmentError = err instanceof Error ? err.message : "Failed to load Edpire assessments"
   }
 
-  const snapshot = getDemoSnapshot()
+  let snapshot = getDemoSnapshot()
+  const assignedAssessmentIds = Array.from(
+    new Set(snapshot.evaluations.map((item) => item.assessmentId).filter((item): item is string => Boolean(item)))
+  )
+
+  for (const assessmentId of assignedAssessmentIds) {
+    try {
+      const results = await getAssessmentResults(assessmentId)
+      replaceAssessmentResults(assessmentId, results)
+    } catch (err) {
+      resultsErrors[assessmentId] =
+        err instanceof Error ? err.message : "Failed to sync Edpire results for this assessment"
+    }
+  }
+
+  snapshot = getDemoSnapshot()
   const usageByAssessmentId = Object.fromEntries(getAssessmentUsageMap().entries())
 
   return (
@@ -37,6 +58,8 @@ export default async function BuilderPage() {
         assessments={assessments}
         usageByAssessmentId={usageByAssessmentId}
         assessmentError={assessmentError}
+        resultsErrorByAssessmentId={resultsErrors}
+        resultsSnapshots={snapshot.assessmentResults}
       />
     </div>
   )

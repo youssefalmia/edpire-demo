@@ -3,7 +3,7 @@
 This repo now demonstrates three complementary integration patterns:
 
 - `Library`: a learner-facing product demo where your platform owns evaluation cards, chapters, copy, and result pages while Edpire runs the assessment.
-- `Builder`: an admin-style page with a right-side Edpire catalog panel and local wrapper entities on the left.
+- `Builder`: an admin-style page with a right-side Edpire catalog panel, local wrapper entities, and an admin-side results sync view.
 - `Simple Redirect`: the minimal possible redirect integration kept alongside the richer demo for comparison.
 
 ## What this repo is teaching
@@ -28,7 +28,7 @@ This demo intentionally uses **temporary in-memory server state** for wrappers, 
 ## Routes
 
 - `/` landing page for the three demos
-- `/library` learner-facing product demo
+- `/library` redirect to the learner-facing evaluations experience
 - `/library/evaluations` chapter-based local wrappers
 - `/builder` admin-style wrapper builder with Edpire side panel
 - `/simple-redirect` smallest viable redirect integration
@@ -61,6 +61,7 @@ Then open `http://localhost:3000`.
 
 - The learner-facing and builder demos auto-seed a few local wrappers from the live assessment catalog once your API key is configured.
 - The result flow verifies `submission_id` server-side with `GET /api/v1/submissions/:id`.
+- The builder also demonstrates how a platform can pull assessment results from Edpire and cache them locally for reporting-style UI.
 - The webhook endpoint is intentionally narrow: it only demonstrates `submission.graded`.
 - Live webhook delivery during local development still requires a public URL or tunnel.
 - The redirect examples now prefer a branded tenant URL like `https://{slug}.edpire.com/take/{shareCode}`.

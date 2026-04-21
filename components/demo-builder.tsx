@@ -2,9 +2,24 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowDown, ArrowUp, Check, CirclePlus, FilePenLine, Search, Sparkles, Trash2 } from "lucide-react"
-import type { Chapter, EntityStatus, EvaluationEntity } from "@/lib/demo-store"
-import type { AssessmentSummary } from "@/lib/edpire"
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  CirclePlus,
+  FilePenLine,
+  RefreshCcw,
+  Search,
+  Sparkles,
+  Trash2,
+} from "lucide-react"
+import type {
+  AssessmentResultsSnapshot,
+  Chapter,
+  EntityStatus,
+  EvaluationEntity,
+} from "@/lib/demo-store"
+import type { AssessmentResultRecord, AssessmentSummary } from "@/lib/edpire"
 import {
   assignAssessmentAction,
   createEvaluationAction,
@@ -26,6 +41,8 @@ interface Props {
   assessments: AssessmentSummary[]
   usageByAssessmentId: Record<string, UsageItem[]>
   assessmentError: string | null
+  resultsSnapshots: AssessmentResultsSnapshot[]
+  resultsErrorByAssessmentId: Record<string, string>
 }
 
 type AssessmentPanelFilter = "all" | "unassigned" | "assigned"
@@ -48,6 +65,8 @@ export function DemoBuilder({
   assessments,
   usageByAssessmentId,
   assessmentError,
+  resultsSnapshots,
+  resultsErrorByAssessmentId,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -57,6 +76,12 @@ export function DemoBuilder({
   const [assessmentFilter, setAssessmentFilter] = useState<AssessmentPanelFilter>("all")
 
   const selectedEntity = evaluations.find((item) => item.id === selectedEvaluationId) ?? null
+  const selectedResults =
+    resultsSnapshots.find((item) => item.assessmentId === selectedEntity?.assessmentId)?.entries ?? []
+  const resultsError = selectedEntity?.assessmentId
+    ? resultsErrorByAssessmentId[selectedEntity.assessmentId] ?? null
+    : null
+  const resultsSyncedAt = resultsSnapshots.find((item) => item.assessmentId === selectedEntity?.assessmentId)?.syncedAt
 
   useEffect(() => {
     if (!evaluations.some((item) => item.id === selectedEvaluationId)) {
@@ -84,6 +109,27 @@ export function DemoBuilder({
       return true
     })
   }, [assessmentFilter, assessmentSearch, assessments, usageByAssessmentId])
+
+  const selectedResultsSummary = useMemo(() => {
+    if (selectedResults.length === 0) {
+      return {
+        attempts: 0,
+        passRate: null as number | null,
+        averageScore: null as number | null,
+        latestSubmittedAt: null as string | null,
+      }
+    }
+
+    const passedCount = selectedResults.filter((item) => item.passed).length
+    const scoreTotal = selectedResults.reduce((total, item) => total + item.score, 0)
+
+    return {
+      attempts: selectedResults.length,
+      passRate: Math.round((passedCount / selectedResults.length) * 100),
+      averageScore: Number((scoreTotal / selectedResults.length).toFixed(1)),
+      latestSubmittedAt: selectedResults[0]?.submitted_at ?? null,
+    }
+  }, [selectedResults])
 
   async function runAction(task: () => Promise<unknown>) {
     startTransition(async () => {
@@ -433,6 +479,89 @@ export function DemoBuilder({
                   </div>
                 </div>
 
+                <div className="rounded-3xl border border-slate-200 bg-white p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                        Synced results
+                      </p>
+                      <h3 className="mt-2 text-lg font-semibold text-slate-950">
+                        Admin-side results from Edpire
+                      </h3>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                        This is where a platform would pull and store assessment results for reporting,
+                        customer support, or analytics. In this demo, the latest sync is kept in temporary
+                        in-memory state.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => startTransition(() => router.refresh())}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      <RefreshCcw size={14} />
+                      Refresh results
+                    </button>
+                  </div>
+
+                  {!selectedEntity.assessmentId ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                      Assign an Edpire assessment to this evaluation first.
+                    </div>
+                  ) : resultsError ? (
+                    <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
+                      {resultsError}
+                    </div>
+                  ) : (
+                    <div className="mt-4 space-y-4">
+                      <div className="grid gap-3 md:grid-cols-4">
+                        <ResultsMetric
+                          label="Attempts"
+                          value={String(selectedResultsSummary.attempts)}
+                        />
+                        <ResultsMetric
+                          label="Pass rate"
+                          value={
+                            selectedResultsSummary.passRate !== null
+                              ? `${selectedResultsSummary.passRate}%`
+                              : "No data"
+                          }
+                        />
+                        <ResultsMetric
+                          label="Average score"
+                          value={
+                            selectedResultsSummary.averageScore !== null
+                              ? `${selectedResultsSummary.averageScore}`
+                              : "No data"
+                          }
+                        />
+                        <ResultsMetric
+                          label="Latest sync"
+                          value={resultsSyncedAt ? new Date(resultsSyncedAt).toLocaleString() : "Not synced"}
+                        />
+                      </div>
+
+                      {selectedResultsSummary.latestSubmittedAt ? (
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                          Latest submission:{" "}
+                          <span className="font-semibold text-slate-900">
+                            {new Date(selectedResultsSummary.latestSubmittedAt).toLocaleString()}
+                          </span>
+                        </div>
+                      ) : null}
+
+                      {selectedResults.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                          No result rows were returned for this assessment yet.
+                        </div>
+                      ) : (
+                        <ResultsTable rows={selectedResults} />
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex flex-wrap gap-3">
                   <button
                     type="button"
@@ -576,6 +705,58 @@ export function DemoBuilder({
           )}
         </div>
       </aside>
+    </div>
+  )
+}
+
+function ResultsMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{label}</p>
+      <p className="mt-2 text-lg font-semibold text-slate-950">{value}</p>
+    </div>
+  )
+}
+
+function ResultsTable({ rows }: { rows: AssessmentResultRecord[] }) {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-slate-200">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
+          <thead className="bg-slate-50 text-left text-xs uppercase tracking-[0.18em] text-slate-400">
+            <tr>
+              <th className="px-4 py-3 font-semibold">Learner</th>
+              <th className="px-4 py-3 font-semibold">Score</th>
+              <th className="px-4 py-3 font-semibold">Percent</th>
+              <th className="px-4 py-3 font-semibold">Result</th>
+              <th className="px-4 py-3 font-semibold">Submitted</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200 bg-white">
+            {rows.map((row) => (
+              <tr key={row.id}>
+                <td className="px-4 py-3 font-medium text-slate-900">{row.learner_ref}</td>
+                <td className="px-4 py-3 text-slate-600">
+                  {row.score} / {row.max_score}
+                </td>
+                <td className="px-4 py-3 text-slate-600">{row.percentage}%</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      row.passed ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {row.passed ? "Passed" : "Failed"}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-slate-600">
+                  {new Date(row.submitted_at).toLocaleString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

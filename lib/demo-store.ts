@@ -1,7 +1,7 @@
 import "server-only"
 
 import { randomUUID } from "crypto"
-import type { AssessmentSummary, SubmissionResult } from "@/lib/edpire"
+import type { AssessmentResultRecord, AssessmentSummary, SubmissionResult } from "@/lib/edpire"
 
 export const DEMO_LEARNER_ID = "learner-demo-01"
 
@@ -45,10 +45,17 @@ export interface AttemptRecord {
   updatedViaWebhook: boolean
 }
 
+export interface AssessmentResultsSnapshot {
+  assessmentId: string
+  syncedAt: string
+  entries: AssessmentResultRecord[]
+}
+
 interface DemoState {
   chapters: Chapter[]
   evaluations: EvaluationEntity[]
   attempts: AttemptRecord[]
+  assessmentResults: AssessmentResultsSnapshot[]
   autoSeededFromCatalog: boolean
 }
 
@@ -127,6 +134,7 @@ function createInitialState(): DemoState {
       },
     ],
     attempts: [],
+    assessmentResults: [],
     autoSeededFromCatalog: false,
   }
 }
@@ -149,6 +157,7 @@ export function getDemoSnapshot() {
     chapters: state.chapters,
     evaluations: state.evaluations,
     attempts: state.attempts,
+    assessmentResults: state.assessmentResults,
   })
 }
 
@@ -387,4 +396,21 @@ export function getAssessmentUsageMap() {
   })
 
   return usage
+}
+
+export function replaceAssessmentResults(assessmentId: string, entries: AssessmentResultRecord[]) {
+  const state = getState()
+  const snapshot: AssessmentResultsSnapshot = {
+    assessmentId,
+    syncedAt: new Date().toISOString(),
+    entries: clone(entries),
+  }
+
+  const existingIndex = state.assessmentResults.findIndex((item) => item.assessmentId === assessmentId)
+  if (existingIndex === -1) {
+    state.assessmentResults.unshift(snapshot)
+    return
+  }
+
+  state.assessmentResults[existingIndex] = snapshot
 }

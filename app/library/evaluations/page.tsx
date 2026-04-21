@@ -38,10 +38,10 @@ export default async function EvaluationsPage({
     <div className="space-y-8">
       <div>
         <Link
-          href="/library"
+          href="/"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-700"
         >
-          <ArrowLeft size={14} /> Back to library
+          <ArrowLeft size={14} /> Back home
         </Link>
       </div>
 

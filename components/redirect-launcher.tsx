@@ -7,12 +7,12 @@ import { buildEdpireTakeUrl, getTakeUrlReadiness } from "@/lib/take-url"
 
 interface Props {
   assessments: AssessmentSummary[]
-  callbackPath?: string
+  returnPath?: string
 }
 
 export function RedirectLauncher({
   assessments,
-  callbackPath = "/simple-redirect/callback",
+  returnPath = "/simple-redirect",
 }: Props) {
   const [learnerId, setLearnerId] = useState("demo-user-01")
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
@@ -20,11 +20,10 @@ export function RedirectLauncher({
 
   function buildTakeUrl(shareCode: string) {
     if (!ready) return "#"
-
     return buildEdpireTakeUrl({
       shareCode,
       learnerRef: learnerId,
-      returnUrl: `${appUrl}${callbackPath}`,
+      returnUrl: `${appUrl}${returnPath}`,
       backUrl: `${appUrl}/simple-redirect`,
       backLabel: "Back to your platform",
       reportLabel: "Return to platform",
@@ -87,10 +86,10 @@ export function RedirectLauncher({
           {assessments[0]
             ? buildTakeUrl(assessments[0].share_code)
             : configuredTenantOrigin
-            ? `${configuredTenantOrigin}/take/SHARE_CODE?learner_ref=${learnerId}&return_url=${appUrl}${callbackPath}`
+            ? `${configuredTenantOrigin}/take/SHARE_CODE?learner_ref=${learnerId}&return_url=${appUrl}${returnPath}`
             : orgSlug
-            ? `https://${orgSlug}.edpire.com/take/SHARE_CODE?learner_ref=${learnerId}&return_url=${appUrl}${callbackPath}`
-            : `${fallbackTakeBase}/SHARE_CODE?learner_ref=${learnerId}&return_url=${appUrl}${callbackPath}`}
+            ? `https://${orgSlug}.edpire.com/take/SHARE_CODE?learner_ref=${learnerId}&return_url=${appUrl}${returnPath}`
+            : `${fallbackTakeBase}/SHARE_CODE?learner_ref=${learnerId}&return_url=${appUrl}${returnPath}`}
         </code>
       </div>
     </div>

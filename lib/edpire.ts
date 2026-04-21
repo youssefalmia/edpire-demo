@@ -74,6 +74,108 @@ export interface SubmissionResult {
   submitted_at: string
 }
 
+export interface AssessmentResultRecord {
+  id: string
+  assessment_id: string
+  learner_ref: string
+  score: number
+  max_score: number
+  percentage: number
+  passed: boolean
+  submitted_at: string
+}
+
+function pickArrayCandidate(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value
+  if (!value || typeof value !== "object") return []
+
+  const record = value as Record<string, unknown>
+  const candidates = [record.results, record.submissions, record.items, record.data]
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate
+  }
+
+  return []
+}
+
+function toNumber(value: unknown) {
+  if (typeof value === "number") return value
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  return null
+}
+
+function normalizeAssessmentResult(raw: unknown, assessmentId: string): AssessmentResultRecord | null {
+  if (!raw || typeof raw !== "object") return null
+  const item = raw as Record<string, unknown>
+
+  const id =
+    typeof item.id === "string"
+      ? item.id
+      : typeof item.submission_id === "string"
+      ? item.submission_id
+      : typeof item.submissionId === "string"
+      ? item.submissionId
+      : null
+
+  const learnerRef =
+    typeof item.learner_ref === "string"
+      ? item.learner_ref
+      : typeof item.learnerRef === "string"
+      ? item.learnerRef
+      : null
+
+  const score = toNumber(item.score)
+  const maxScore = toNumber(item.max_score ?? item.maxScore)
+  const percentage = toNumber(item.percentage)
+  const passed =
+    typeof item.passed === "boolean"
+      ? item.passed
+      : percentage !== null
+      ? percentage >= 60
+      : null
+
+  const submittedAt =
+    typeof item.submitted_at === "string"
+      ? item.submitted_at
+      : typeof item.submittedAt === "string"
+      ? item.submittedAt
+      : null
+
+  const resolvedAssessmentId =
+    typeof item.assessment_id === "string"
+      ? item.assessment_id
+      : typeof item.assessmentId === "string"
+      ? item.assessmentId
+      : assessmentId
+
+  if (
+    !id ||
+    !learnerRef ||
+    score === null ||
+    maxScore === null ||
+    percentage === null ||
+    passed === null ||
+    !submittedAt
+  ) {
+    return null
+  }
+
+  return {
+    id,
+    assessment_id: resolvedAssessmentId,
+    learner_ref: learnerRef,
+    score,
+    max_score: maxScore,
+    percentage,
+    passed,
+    submitted_at: submittedAt,
+  }
+}
+
 export async function listCollections(): Promise<Collection[]> {
   return apiFetch<Collection[]>("/collections")
 }
@@ -135,4 +237,17 @@ export async function getSubmission(submissionId: string): Promise<SubmissionRes
   } catch {
     return null
   }
+}
+
+export async function getAssessmentResults(assessmentId: string): Promise<AssessmentResultRecord[]> {
+  if (!assessmentId || !API_KEY) return []
+
+  const data = await apiFetch<unknown>(`/assessments/${assessmentId}/results`, {
+    cache: "no-store",
+  })
+
+  return pickArrayCandidate(data)
+    .map((item) => normalizeAssessmentResult(item, assessmentId))
+    .filter((item): item is AssessmentResultRecord => Boolean(item))
+    .sort((left, right) => Date.parse(right.submitted_at) - Date.parse(left.submitted_at))
 }
