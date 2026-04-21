@@ -55,7 +55,7 @@ export default async function CallbackPage({ searchParams }: Props) {
           <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
             <p className="text-xs font-medium text-slate-500 mb-1">What your app received</p>
             <pre className="text-xs text-slate-700 overflow-auto">
-{JSON.stringify({ submission_id: submissionId, score, max_score: maxScore }, null, 2)}
+              {JSON.stringify({ submission_id: submissionId, score, max_score: maxScore }, null, 2)}
             </pre>
           </div>
 
